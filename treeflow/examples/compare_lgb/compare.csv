@@ -1,0 +1,5 @@
+detector,trees,trees_per_ha,height_median_m,method
+treeflow,78,216.7,25.5,tree tops in canopy height model
+lidr-dalponte,65,180.6,25.8,lidR: local maxima + Dalponte 2016 crowns
+lidr-silva,65,180.6,25.8,lidR: local maxima + Silva 2016 crowns
+lidr-li2012,80,222.2,25.2,lidR: Li et al. 2012 point-cloud segmentation

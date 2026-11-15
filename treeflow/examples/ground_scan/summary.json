@@ -1,0 +1,65 @@
+{
+ "summary": {
+  "trees": 49,
+  "area_ha": 0.25,
+  "trees_per_ha": 196.0,
+  "height_median_m": 20.8,
+  "height_p95_m": 28.4,
+  "stems_measured": 49,
+  "dbh_median_cm": 24.7,
+  "kind": "drone",
+  "density": 290.8058161163223,
+  "method": "stems at breast height",
+  "ground_source": "treeflow ground filter"
+ },
+ "info": {
+  "points": 727000,
+  "area_m2": 2499.9500000000003,
+  "density": 290.8058161163223,
+  "kind": "drone",
+  "has_ground_class": false,
+  "multi_return": false,
+  "extent": [
+   0.0006584278103738406,
+   0.00012183325788783783,
+   49.999658427810374,
+   50.000121833257886
+  ],
+  "source": "/home/claude/tf_data/synthetic_ground_scan.laz",
+  "ground_source": "treeflow ground filter",
+  "method": "stems at breast height",
+  "warnings": [
+   "Whole file processed: trees cut by the file edge are measured only partly.",
+   "Species is not derived from geometry; aerial photo values only flag crowns that differ from the stand."
+  ]
+ },
+ "validation": {
+  "reference_trees": 53,
+  "detected_trees": 49,
+  "matched": 49,
+  "found_pct": 92.5,
+  "correct_pct": 100.0,
+  "position_error_m": 0.0,
+  "height_bias_m": -0.34,
+  "height_rmse_m": 0.37,
+  "dbh_compared": 49,
+  "dbh_bias_cm": -0.5,
+  "dbh_rmse_cm": 0.5
+ },
+ "log": [
+  "Read 727,000 points, 291 per m\u00b2 \u2192 treated as drone scan  [0.2 s]",
+  "Ground from treeflow ground filter; terrain model at 1.0 m; heights converted to height above ground  [0.5 s]",
+  "Trees found by stems at breast height: 49 candidates; crowns split by watershed on a 0.25 m canopy model  [2.4 s]",
+  "Measured 49 trees inside the area; stem diameter measured for 49  [2.6 s]",
+  "Compared with reference trees  [2.6 s]"
+ ],
+ "config": {
+  "buffer_m": 10.0,
+  "min_tree_height": 5.0,
+  "crown_min_height": 2.0,
+  "min_point_height": 1.0,
+  "min_points_per_tree": 15,
+  "estimate_dbh": false,
+  "viewer": true
+ }
+}

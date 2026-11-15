@@ -1,0 +1,9 @@
+*.laz
+*.las
+*.tif
+*.zip
+.netlify/
+DEPLOY_*.bat
+log_*.txt
+__pycache__/
+ergebnisse/

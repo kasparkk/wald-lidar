@@ -1,0 +1,55 @@
+{
+ "summary": {
+  "trees": 78,
+  "area_ha": 0.36,
+  "trees_per_ha": 216.7,
+  "height_median_m": 25.5,
+  "height_p95_m": 27.9,
+  "stems_measured": 0,
+  "dbh_median_cm": null,
+  "kind": "airborne",
+  "density": 23.6,
+  "method": "tree tops in canopy height model",
+  "ground_source": "file classification"
+ },
+ "info": {
+  "points": 150733,
+  "area_m2": 6399.8400009830875,
+  "density": 23.55262006188369,
+  "kind": "airborne",
+  "has_ground_class": true,
+  "multi_return": true,
+  "extent": [
+   410205.0,
+   5785805.0,
+   410284.99899999995,
+   5785884.999
+  ],
+  "source": "/tmp/claude-0/-home-claude/2a5770be-1182-5512-a56a-b1227b118275/scratchpad/als/als_33410-5785.laz",
+  "ground_source": "file classification",
+  "method": "tree tops in canopy height model",
+  "warnings": [
+   "From above, trees under the canopy are often missed and neighbouring crowns can merge.",
+   "Stem diameter is rarely measurable from airborne data.",
+   "Species is not derived from geometry; aerial photo values only flag crowns that differ from the stand.",
+   "Not checked against reference trees. Run with --reference to get detection and error rates."
+  ]
+ },
+ "validation": null,
+ "log": [
+  "Read 150,733 points, 24 per m\u00b2 \u2192 treated as airborne scan  [17.5 s]",
+  "Ground from file classification; terrain model at 1.0 m; heights converted to height above ground  [18.0 s]",
+  "Trees found by tree tops in canopy height model: 130 candidates; crowns split by watershed on a 0.5 m canopy model  [18.0 s]",
+  "Measured 78 trees inside the area; stem diameter measured for 0  [18.1 s]",
+  "Aerial photo values per crown: ok  [24.2 s]"
+ ],
+ "config": {
+  "buffer_m": 10.0,
+  "min_tree_height": 5.0,
+  "crown_min_height": 2.0,
+  "min_point_height": 1.0,
+  "min_points_per_tree": 15,
+  "estimate_dbh": false,
+  "viewer": true
+ }
+}

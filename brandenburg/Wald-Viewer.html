@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wald Brandenburg 3D</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,650&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono&display=swap">
+<style>
+/* Layout: full-bleed map/3D scene; field-notebook panel top-left, tree card bottom-left, start overlay centered. Single dark look. */
+:root{
+  --sky:#121a17; --panel:rgba(18,26,23,.86); --line:rgba(214,226,206,.16);
+  --fg:#e5ebdc; --muted:#a3b19b; --resin:#d9a441; --bad:#e08a6b;
+  --display:"Fraunces",Georgia,serif; --body:"IBM Plex Sans",system-ui,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0}
+[hidden]{display:none!important}
+body{background:var(--sky);color:var(--fg);font:14px var(--body);overflow:hidden}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:pointer}
+.box{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:10px;backdrop-filter:blur(6px)}
+.panel{top:14px;left:16px;width:min(320px,calc(100vw - 32px))}
+.card{left:16px;bottom:14px;width:min(380px,calc(100vw - 32px));max-height:calc(100vh - 28px);overflow:auto;border-color:var(--resin)}
+.eyebrow{font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--resin)}
+h1{margin:0;font:650 22px/1.15 var(--display)}
+h2{margin:0;font:650 17px var(--display)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:13px}
+dt{color:var(--muted)} dd{margin:0;white-space:nowrap;font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.est{color:var(--resin);font-size:11px}
+.ramp{height:8px;border-radius:4px;background:linear-gradient(90deg,#c9c27a,#9db86b,#5f9a4f,#2f6b3c,#1d4a2c)}
+.ticks{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--muted)}
+.note{margin:0;font-size:12px;line-height:1.45;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+button,.pick{font:500 12px var(--body);color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+button:hover,.pick:hover{border-color:var(--resin)}
+button:focus-visible,.pick:focus-within{outline:2px solid var(--resin);outline-offset:2px}
+.start{inset:0;margin:auto;width:min(440px,calc(100vw - 32px));height:max-content;gap:14px}
+.start .pick{background:var(--resin);color:#1b1408;border-color:var(--resin);font-size:14px;padding:10px 14px;justify-self:start}
+.pick input{display:none}
+.status{position:fixed;right:16px;bottom:14px;font:11px var(--mono);color:var(--muted);text-align:right}
+.keys{font-size:12px;gap:3px 10px;border-top:1px solid var(--line);padding-top:8px}
+.keys dd{font-family:var(--body);color:var(--muted)}
+kbd{font:11px var(--mono);color:var(--fg);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px}
+@media (max-height:640px){.keys{display:none}}
+body:has(#card:not([hidden])) .keys{display:none}
+.pad{position:fixed;right:16px;bottom:56px;display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px);gap:4px;user-select:none;-webkit-user-select:none;touch-action:none}
+.pad button{width:40px;height:40px;padding:0;display:grid;place-items:center;font:16px var(--body);background:var(--panel);border-radius:8px;touch-action:none}
+.pad .z{display:grid;grid-template-rows:1fr 1fr;gap:4px}.pad .z button{height:18px;font-size:13px}
+@media (max-width:600px){.pad{bottom:auto;top:70px}}
+.hud{position:fixed;right:16px;top:14px;display:grid;justify-items:end;gap:8px;pointer-events:none}
+.compass{width:46px;height:46px;border-radius:50%;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center}
+.compass svg{transition:transform .08s linear}
+.scale{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:11px var(--mono);color:var(--fg);display:grid;gap:4px;justify-items:start}
+.scale i{display:block;height:6px;border:2px solid var(--fg);border-top:0}
+.coords{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 10px;font:12px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.seg{display:flex;gap:0;margin-top:2px}.seg button{border-radius:0;margin-left:-1px}.seg button:first-child{border-radius:6px 0 0 6px;margin-left:0}.seg button:last-child{border-radius:0 6px 6px 0}button[aria-pressed="true"]{background:var(--resin);color:#1b1408;border-color:var(--resin)}
+.attr{position:fixed;right:16px;bottom:30px;font:10px var(--body);color:var(--muted)}
+.links{display:flex;gap:10px;font-size:12px} .links a{color:var(--resin)}
+.card header{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<section class="box start" id="start">
+  <div class="eyebrow">Brandenburg · nDOM · Einzelbäume</div>
+  <h1>Wald Brandenburg 3D</h1>
+  <p class="note">Wähle den Ordner <b>ergebnisse</b> aus dem bb_wald-Ordner. Die Daten bleiben auf deinem Rechner, es wird nichts hochgeladen.</p>
+  <label class="pick">Ordner „ergebnisse“ wählen<input id="dir" type="file" webkitdirectory multiple></label>
+  <p class="note" id="loadmsg"></p>
+</section>
+
+<section class="box panel" id="panel" hidden>
+  <div class="eyebrow" id="eb">Übersicht</div>
+  <h1 id="ptitle">Wald Brandenburg</h1>
+  <dl>
+    <dt>Kacheln (1 km²)</dt><dd id="sK">–</dd>
+    <dt>Waldfläche</dt><dd id="sW">–</dd>
+    <dt>Bäume erkannt</dt><dd id="sB">–</dd>
+    <dt>Bäume geschätzt <span class="est">inkl. verdeckte</span></dt><dd id="sG">–</dd>
+    <dt>Vorrat <span class="est" id="sVl">grob</span></dt><dd id="sV">–</dd>
+    <dt>Luftbilder (Kronen)</dt><dd id="sD">–</dd>
+  </dl>
+  <p class="note">Kegel = Nadelbaum, eingefärbt nach Höhe · hellgrüne Kugel = Laubbaum (wo bestimmt). Vitalität: <span style="color:#e39b2f">orange = auffällig</span>, <span style="color:#c9c4b8">grau = evtl. abgestorben</span>.</p>
+  <div><div class="ramp"></div><div class="ticks"><span>5 m</span><span>15 m</span><span>25 m</span><span>30 m</span></div></div>
+  <div class="row">
+    <button id="bAll" type="button">Ganz Brandenburg</button>
+    <a id="bKarte" class="pick" href="brandenburg.html" hidden style="text-decoration:none">Brandenburg-Karte</a>
+    <button id="bHam" type="button">Hammer</button>
+    <button id="bVit" type="button" aria-pressed="false">Vitalität</button>
+    <button id="bTree" type="button" aria-pressed="true">Bäume</button>
+    <label class="pick">Neu einlesen<input id="dir2" type="file" webkitdirectory multiple></label>
+  </div>
+  <div><p class="note" style="margin:0">Hintergrund</p>
+  <div class="seg" id="seg">
+    <button type="button" data-m="karte" aria-pressed="true">Karte</button>
+    <button type="button" data-m="luft" aria-pressed="false">Luftbild</button>
+    <button type="button" data-m="cir" aria-pressed="false">Infrarot</button>
+    <button type="button" data-m="aus" aria-pressed="false">aus</button>
+  </div></div>
+  <p class="note">Zum Prüfen: Luftbild wählen, von oben heranzoomen und mit <kbd>O</kbd> senkrecht von oben schauen, mit <kbd>T</kbd> die Bäume ein- und ausblenden. Sitzt auf jeder Krone ein Baum?</p>
+  <p class="note">Kachel anklicken zum Hinfliegen. Nah heran zoomen lädt die Einzelbäume, Baum anklicken zeigt Details.</p>
+  <dl class="keys">
+    <dt><kbd>W A S D</kbd> / Pfeile</dt><dd>bewegen</dd>
+    <dt><kbd>Q</kbd> <kbd>E</kbd></dt><dd>drehen</dd>
+    <dt><kbd>R</kbd> <kbd>F</kbd> / <kbd>+</kbd> <kbd>−</kbd></dt><dd>zoomen</dd>
+    <dt><kbd>Shift</kbd></dt><dd>schneller</dd>
+    <dt><kbd>V</kbd> · <kbd>K</kbd></dt><dd>Vitalität · Hintergrund</dd>
+    <dt><kbd>T</kbd> · <kbd>O</kbd></dt><dd>Bäume an/aus · von oben</dd>
+    <dt><kbd>H</kbd> · <kbd>B</kbd> · <kbd>Esc</kbd></dt><dd>Hammer · Brandenburg · schließen</dd>
+  </dl>
+</section>
+
+<section class="box card" id="card" hidden>
+  <header><h2 id="cT">Baum</h2><button id="cX" type="button" aria-label="Schließen">✕</button></header>
+  <dl id="cD"></dl>
+  <div class="links" id="cL" hidden></div>
+  <p class="note" id="cN"></p>
+</section>
+
+<div class="status" id="status"></div>
+<div class="hud" aria-hidden="true">
+  <div class="compass"><svg id="needle" width="30" height="30" viewBox="-15 -15 30 30"><path d="M0-13 L5 2 L0 0 L-5 2Z" fill="#d9a441"/><path d="M0 13 L5 -2 L0 0 L-5 -2Z" fill="#a3b19b" opacity=".6"/><text x="0" y="-5" font-size="0" fill="none">N</text></svg></div>
+  <div class="scale"><span id="scaleTxt">–</span><i id="scaleBar" style="width:80px"></i></div>
+</div>
+<div class="coords" id="coords" hidden></div>
+<div class="pad" id="pad" aria-label="Steuerung">
+  <button type="button" data-k="KeyQ" aria-label="nach links drehen" title="drehen (Q)">⟲</button>
+  <button type="button" data-k="KeyW" aria-label="vorwärts" title="vorwärts (W)">▲</button>
+  <button type="button" data-k="KeyE" aria-label="nach rechts drehen" title="drehen (E)">⟳</button>
+  <button type="button" data-k="KeyA" aria-label="nach links" title="links (A)">◀</button>
+  <div class="z"><button type="button" data-k="KeyR" aria-label="heranzoomen" title="heranzoomen (R)">+</button><button type="button" data-k="KeyF" aria-label="herauszoomen" title="herauszoomen (F)">−</button></div>
+  <button type="button" data-k="KeyD" aria-label="nach rechts" title="rechts (D)">▶</button>
+  <span></span>
+  <button type="button" data-k="KeyS" aria-label="zurück" title="zurück (S)">▼</button>
+  <span></span>
+</div>
+<div class="attr" id="attr" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const de=(v,d=0)=>v.toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const HAM={e:409,n:5777};
+const LOAD_DIST=2400;                      // m Kameraabstand, ab dem Einzelbäume geladen werden
+
+let meta={}, files=new Map(), tiles=new Map(), E0,E1,N0,N1, ORIG;
+const loaded=new Map(); let loading=new Set();
+
+// ---------- three ----------
+const canvas=$('scene');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,logarithmicDepthBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x1a2420);
+const camera=new THREE.PerspectiveCamera(45,1,1,2e6);
+const controls=new THREE.OrbitControls(camera,canvas);
+controls.enableDamping=true; controls.maxPolarAngle=Math.PI*0.49; controls.minDistance=20; controls.maxDistance=600000;
+controls.screenSpacePanning=false;
+scene.add(new THREE.HemisphereLight(0xdfe8d4,0x3b3324,0.9));
+const sun=new THREE.DirectionalLight(0xffe2b0,0.85); sun.position.set(-1,1.2,0.8); scene.add(sun);
+
+const stops=[[5,0xc9c27a],[12,0x9db86b],[18,0x5f9a4f],[25,0x2f6b3c],[30,0x1d4a2c]].map(([h,c])=>[h,new THREE.Color(c)]);
+function ramp(h){ if(h<=stops[0][0])return stops[0][1].clone();
+  for(let i=1;i<stops.length;i++) if(h<=stops[i][0]){const t=(h-stops[i-1][0])/(stops[i][0]-stops[i-1][0]);return stops[i-1][1].clone().lerp(stops[i][1],t);}
+  return stops[stops.length-1][1].clone(); }
+
+// world: x = east-ORIG.e (m), z = -(north-ORIG.n) (m)
+const wx=e=>e-ORIG.e, wz=n=>-(n-ORIG.n);
+let ground=null;
+
+function buildGround(){
+  const W=E1-E0+1,H=N1-N0+1, cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const g=cv.getContext('2d'); g.fillStyle='#2a2f2a'; g.fillRect(0,0,W,H);
+  for(const t of tiles.values()){
+    const c=t.wald_ha>10?ramp(t.hoehe_median_m):new THREE.Color(0x6b6656);
+    if(t.wald_ha>10) c.lerp(new THREE.Color(0x6b6656),Math.max(0,1-t.wald_ha/60));
+    g.fillStyle='#'+c.getHexString(); g.fillRect(t.e_km-E0,N1-t.n_km,1,1);
+  }
+  const tex=new THREE.CanvasTexture(cv); tex.magFilter=THREE.NearestFilter; tex.minFilter=THREE.LinearFilter;
+  if(ground){scene.remove(ground);ground.geometry.dispose();ground.material.map.dispose();}
+  ground=new THREE.Mesh(new THREE.PlaneGeometry(W*1000,H*1000),new THREE.MeshLambertMaterial({map:tex}));
+  ground.rotation.x=-Math.PI/2;
+  ground.position.set(wx(E0*1000)+W*500,0,wz(N0*1000)-H*500);
+  scene.add(ground);
+}
+
+// ---------- reading the folder ----------
+async function readFolder(list){
+  files=new Map(); for(const f of list){const p=f.webkitRelativePath.replace(/\\/g,'/'); const m=p.match(/(kacheln|baeume)\/.*$/); if(m) files.set(m[0],f); else if(/befliegung\.json$/.test(p)) files.set('befliegung.json',f);}
+  const js=[...files.keys()].filter(k=>k.startsWith('kacheln/')&&k.endsWith('.json'));
+  if(!js.length){ $('loadmsg').textContent='In diesem Ordner sind keine Kacheln. Bitte den Ordner „ergebnisse“ wählen.'; return; }
+  $('loadmsg').textContent='Lese '+de(js.length)+' Kacheln …';
+  meta={}; if(files.has('befliegung.json')){ try{ meta=JSON.parse(await files.get('befliegung.json').text()); }catch(e){} }
+  tiles=new Map(); const B=400;
+  for(let i=0;i<js.length;i+=B){
+    const part=await Promise.all(js.slice(i,i+B).map(k=>files.get(k).text().then(JSON.parse).catch(()=>null)));
+    for(const t of part) if(t) tiles.set(t.e_km+'-'+t.n_km,t);
+  }
+  initData();
+}
+let WEB=false;
+function initData(){
+  const es=[...tiles.values()].map(t=>t.e_km), ns=[...tiles.values()].map(t=>t.n_km);
+  E0=Math.min(...es);E1=Math.max(...es);N0=Math.min(...ns);N1=Math.max(...ns);
+  if(!ORIG) ORIG={e:Math.round((E0+E1)/2)*1000, n:Math.round((N0+N1)/2)*1000};
+  for(const k of [...loaded.keys()]) unloadTile(k);
+  buildGround(); updateStats();
+  $('start').hidden=true; $('panel').hidden=false;
+  if(!camera.userData.placed){ camera.userData.placed=true; if(tiles.has(HAM.e+'-'+HAM.n)&&tiles.size<500) goTile(HAM.e,HAM.n,true); else showAll(true); }
+}
+// Web-Modus: Daten liegen neben der Seite (daten/index.json)
+(async()=>{ if(!/^https?:/.test(location.protocol)) return;
+  try{ const r=await fetch('daten/index.json'); if(!r.ok) return; const ix=await r.json(); WEB=true;
+    tiles=new Map(); for(const t of ix.kacheln) tiles.set(t.e_km+'-'+t.n_km,t); meta=ix.befliegung||{};
+    $('dir2').closest('label').hidden=true; $('bKarte').hidden=false; initData(); }catch(e){} })();
+$('dir').addEventListener('change',e=>readFolder(e.target.files));
+$('dir2').addEventListener('change',e=>readFolder(e.target.files));
+
+const dfmt=s=>s?s.split('-').reverse().join('.'):'unbekannt';
+function flightRows(k){const m=meta[k]; if(!m) return row('Befliegung','keine Metadaten');
+  return row('Kronen: Luftbild vom',dfmt(m.dom))+row('Gelände: Laserscan vom',dfmt(m.als));}
+function updateStats(){
+  let w=0,b=0,v=0,g=0,kor=false; for(const t of tiles.values()){w+=t.wald_ha;b+=t.baeume;g+=(t.baeume_geschaetzt??t.baeume);if(t.vorrat_m3!=null){kor=true;v+=t.vorrat_m3;}else v+=t.vorrat_grob_m3;}
+  const ds=[...tiles.values()].map(t=>meta[t.kachel]&&meta[t.kachel].dom).filter(Boolean).sort();
+  $('sD').textContent=ds.length?(ds[0].slice(0,4)===ds[ds.length-1].slice(0,4)?ds[0].slice(0,4):ds[0].slice(0,4)+'–'+ds[ds.length-1].slice(0,4)):'unbekannt';
+  $('sK').textContent=de(tiles.size); $('sW').textContent=de(w)+' ha'; $('sB').textContent=de(b); $('sG').textContent='≈ '+(g>=1e6?de(g/1e6,1)+' Mio.':de(Math.round(g/1000)*1000)); $('sVl').textContent=kor?'an BWI angeglichen':'grob'; $('sV').textContent='≈ '+(v>=1e6?de(v/1e6,1)+' Mio. m³':de(v)+' m³');
+}
+
+// ---------- camera moves ----------
+let anim=null;
+function fly(pos,tgt,instant){ if(instant||matchMedia('(prefers-reduced-motion: reduce)').matches){camera.position.copy(pos);controls.target.copy(tgt);return;}
+  anim={t:0,fp:camera.position.clone(),ft:controls.target.clone(),tp:pos,tt:tgt}; }
+function showAll(instant){ const cx=wx((E0+E1+1)*500), cz=wz((N0+N1+1)*500), s=Math.max(E1-E0+1,N1-N0+1)*1000;
+  fly(new THREE.Vector3(cx-s*0.25,s*1.05,cz+s*0.55),new THREE.Vector3(cx,0,cz),instant); }
+function goTile(e,n,instant){ const cx=wx(e*1000+500), cz=wz(n*1000+500);
+  fly(new THREE.Vector3(cx-450,620,cz+780),new THREE.Vector3(cx,0,cz),instant); }
+$('bAll').onclick=()=>showAll(); $('bHam').onclick=()=>goTile(HAM.e,HAM.n); $('bVit').onclick=()=>setVit(!vitMode); $('bTree').onclick=()=>setTrees(!treesOn); document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>setMap(b.dataset.m));
+
+// ---------- trees ----------
+const crownGeo=new THREE.ConeGeometry(1,1,7); crownGeo.translate(0,0.5,0);
+const leafGeo=new THREE.SphereGeometry(1,8,6); leafGeo.translate(0,1,0); leafGeo.scale(1,0.5,1);
+const LAUB=new THREE.Color(0x93bf55);
+const VIT_OK=new THREE.Color(0x4f6f4a), VIT_A=new THREE.Color(0xe39b2f), VIT_T=new THREE.Color(0xc9c4b8);
+let vitMode=false, treesOn=true;
+function setTrees(on){ treesOn=on; $('bTree').setAttribute('aria-pressed',on); for(const L of loaded.values()){ for(const M of L.meshes) M.mesh.visible=on; L.trunks.visible=on; } if(!on) marker.visible=false; }
+function setVit(on){ vitMode=on; $('bVit').setAttribute('aria-pressed',on);
+  for(const L of loaded.values()) for(const M of L.meshes){ if(!L.hasVit) continue; M.mesh.instanceColor.array.set(on?M.vit:M.normal); M.base=new Float32Array(M.mesh.instanceColor.array); M.mesh.instanceColor.needsUpdate=true; }
+  if(sel&&loaded.has(sel.key)){ const s=sel; sel=null; select(s); } }
+const trunkGeo=new THREE.CylinderGeometry(0.14,0.22,1,5); trunkGeo.translate(0,0.5,0);
+const trunkMat=new THREE.MeshLambertMaterial({color:0x8a5a3b}), crownMat=new THREE.MeshLambertMaterial({color:0xffffff});
+const crownR=h=>Math.min(3.2,Math.max(1,0.8+0.08*h));
+
+async function gunzipText(src){
+  const buf=new Uint8Array(await (src instanceof Response?src.arrayBuffer():src.arrayBuffer()));
+  if(buf[0]!==0x1f||buf[1]!==0x8b) return new TextDecoder().decode(buf);   // schon entpackt (Server)
+  const ds=new DecompressionStream('gzip'); return await new Response(new Blob([buf]).stream().pipeThrough(ds)).text();
+}
+async function loadTile(key){
+  const t=tiles.get(key), rel=`baeume/${t.e_km}/33${String(t.e_km).padStart(3,'0')}-${t.n_km}.csv.gz`;
+  let f=null; loading.add(key); setStatus();
+  if(WEB){ try{ const r=await fetch('daten/'+rel); if(r.ok) f=r; }catch(e){} } else f=files.get(rel);
+  if(!f){ loading.delete(key); return; }
+  const lines=(await gunzipText(f)).split('\n'); const n=lines.length-2>0?lines.length-2:0;
+  const X=new Float32Array(n),Z=new Float32Array(n),H=new Float32Array(n),E=new Float64Array(n),N=new Float64Array(n),A=new Uint8Array(n),P=new Uint8Array(n),V=new Uint8Array(n),NV=new Float32Array(n); let k=0, hasArt=false, hasVit=false;
+  for(let i=1;i<lines.length;i++){ const s=lines[i]; if(!s) continue; const a=s.split(','); E[k]=+a[0];N[k]=+a[1];H[k]=+a[2];X[k]=wx(E[k]);Z[k]=wz(N[k]);
+    if(a.length>3){hasArt=true; A[k]=a[3]==='L'?2:a[3]==='N'?1:0; P[k]=+a[4]||0;} if(a.length>5){hasVit=true; V[k]=a[5]==='t'?2:a[5]==='a'?1:0; NV[k]=+a[6];} k++; }
+  loading.delete(key);
+  if(!want.has(key)){ setStatus(); return; }
+  const idxN=[],idxL=[]; for(let i=0;i<k;i++) (A[i]===2?idxL:idxN).push(i);
+  const trunks=new THREE.InstancedMesh(trunkGeo,trunkMat,k);
+  const m=new THREE.Matrix4(),q=new THREE.Quaternion(),p=new THREE.Vector3(),s=new THREE.Vector3(),c=new THREE.Color();
+  const meshes=[];
+  for(const [idx,geo,laub] of [[idxN,crownGeo,false],[idxL,leafGeo,true]]){
+    if(!idx.length) continue;
+    const mesh=new THREE.InstancedMesh(geo,crownMat,idx.length);
+    idx.forEach((i,j)=>{ const h=H[i], r=laub?crownR(h)*1.25:crownR(h), ch=laub?Math.max(2,h*0.5):Math.max(2,h*0.42);
+      p.set(X[i],h-ch,Z[i]); s.set(r,ch,r); m.compose(p,q,s); mesh.setMatrixAt(j,m);
+      c.copy(laub?LAUB:ramp(h)).offsetHSL(0,0,(((i*9301+49297)%233280)/233280-0.5)*0.07); mesh.setColorAt(j,c); });
+    const normal=new Float32Array(mesh.instanceColor.array), vit=new Float32Array(normal.length);
+    idx.forEach((i,j)=>{ const col=V[i]===2?VIT_T:V[i]===1?VIT_A:VIT_OK; vit[j*3]=col.r;vit[j*3+1]=col.g;vit[j*3+2]=col.b; });
+    if(vitMode&&hasVit){ mesh.instanceColor.array.set(vit); mesh.instanceColor.needsUpdate=true; }
+    mesh.userData={key,idx:Int32Array.from(idx)}; meshes.push({mesh,idx:Int32Array.from(idx),normal,vit,base:new Float32Array(mesh.instanceColor.array)}); scene.add(mesh);
+  }
+  for(let i=0;i<k;i++){ const h=H[i],ch=Math.max(2,h*0.42); p.set(X[i],0,Z[i]); s.set(1+h/45,h-ch*0.5,1+h/45); m.compose(p,q,s); trunks.setMatrixAt(i,m); }
+  trunks.visible=treesOn; for(const M of meshes) M.mesh.visible=treesOn;
+  scene.add(trunks);
+  let nL=0; for(let i=0;i<k;i++) if(A[i]===2) nL++;
+  let nA=0,nT=0; for(let i=0;i<k;i++){ if(V[i]===1)nA++; else if(V[i]===2)nT++; }
+  loaded.set(key,{meshes,trunks,X,Z,H,E,N,A,P,V,NV,hasArt,hasVit,nL,nA,nT,n:k});
+  setStatus();
+}
+function unloadTile(key){ const L=loaded.get(key); if(!L) return; for(const M of L.meshes){scene.remove(M.mesh);M.mesh.dispose();} scene.remove(L.trunks); L.trunks.dispose(); loaded.delete(key); if(sel&&sel.key===key) select(null); }
+
+let want=new Set();
+function updateTrees(){
+  if(!tiles.size) return;
+  const dist=camera.position.distanceTo(controls.target);
+  want=new Set();
+  if(dist<LOAD_DIST){ // nur Kacheln, die ein Kreis um den Blickpunkt berührt (meist 1–4 statt 9)
+    const ce=controls.target.x+ORIG.e, cn=-controls.target.z+ORIG.n, R=Math.min(700,Math.max(250,dist*0.45));
+    for(let e=Math.floor((ce-R)/1000);e<=Math.floor((ce+R)/1000);e++)for(let n=Math.floor((cn-R)/1000);n<=Math.floor((cn+R)/1000);n++){
+      const dx=Math.max(e*1000-ce,0,ce-(e+1)*1000), dy=Math.max(n*1000-cn,0,cn-(n+1)*1000); if(dx*dx+dy*dy>R*R) continue;
+      const k=e+'-'+n; if(tiles.has(k)) want.add(k);} }
+  for(const k of [...loaded.keys()]) if(!want.has(k)) unloadTile(k);
+  for(const k of want) if(!loaded.has(k)&&!loading.has(k)) loadTile(k);
+  setStatus(dist);
+}
+function setStatus(dist){ const n=[...loaded.values()].reduce((a,L)=>a+L.n,0);
+  $('status').textContent=(loading.size?'lade Bäume … · ':'')+(n?de(n)+' Bäume geladen':(dist!==undefined&&dist>=LOAD_DIST?'näher heranzoomen für Einzelbäume':'')); }
+setInterval(updateTrees,600);
+
+// ---------- picking ----------
+const ray=new THREE.Raycaster(), ptr=new THREE.Vector2(); let sel=null, down=null;
+const marker=new THREE.Mesh(new THREE.RingGeometry(1.8,2.5,32),new THREE.MeshBasicMaterial({color:0xd9a441,side:THREE.DoubleSide}));
+marker.rotation.x=-Math.PI/2; marker.visible=false; scene.add(marker);
+function row(k,v,est){return `<dt>${k}${est?' <span class="est">Schätzung</span>':''}</dt><dd>${v}</dd>`;}
+function select(s){
+  if(sel&&loaded.has(sel.key)){const M=sel.M, j=sel.j; M.mesh.instanceColor.setXYZ(j,M.base[j*3],M.base[j*3+1],M.base[j*3+2]); M.mesh.instanceColor.needsUpdate=true;}
+  sel=s; if(!s){$('card').hidden=true;marker.visible=false;return;}
+  const L=loaded.get(s.key), i=s.i, h=L.H[i], t=tiles.get(s.key);
+  s.M.mesh.setColorAt(s.j,new THREE.Color(0xd9a441)); s.M.mesh.instanceColor.needsUpdate=true;
+  const vtxt=['unauffällig','auffällig','evtl. abgestorben'];
+  const vit=L.hasVit?row('Vitalität',vtxt[L.V[i]]+' · NDVI '+de(L.NV[i],2),1):'';
+  const art=!L.hasArt?row('Baumart','nicht bestimmt'):(L.A[i]===0?row('Baumart','nicht bestimmt'):row('Baumart',(L.A[i]===2?'Laubbaum':'Nadelbaum')+' · '+L.P[i]+' %',1));
+  const d=Math.max(5,1.5*h-6), v=0.45*Math.PI/4*(d/100)**2*h;
+  let nb=0; for(let j=0;j<L.n;j++){ if(j===i)continue; const dx=L.X[j]-L.X[i],dz=L.Z[j]-L.Z[i]; if(dx*dx+dz*dz<=100)nb++; }
+  $('cT').textContent='Baum in Kachel '+t.kachel;
+  $('cD').innerHTML=art+vit+row('Höhe',de(h,1)+' m')+row('Kronenbreite','≈ '+de(2*crownR(h),1)+' m',1)+row('BHD','≈ '+Math.round(d)+' cm',1)+row('Volumen','≈ '+de(v,2)+' m³',1)
+    +row('Nachbarn im 10-m-Kreis',nb)+row('UTM 33 Ost / Nord',Math.round(L.E[i])+' / '+Math.round(L.N[i]))+row('Breite / Länge',(([la,lo])=>de(la,5)+' / '+de(lo,5))(utm2ll(L.E[i],L.N[i])))
+    +row('Kachel: Waldfläche',de(t.wald_ha,1)+' ha')+(L.hasArt?row('Kachel: Laubbaum-Anteil',Math.round(100*L.nL/Math.max(1,L.n))+' %',1):'')+(L.hasVit?row('Kachel: auffällig / abgestorben',L.nA+' / '+L.nT,1):'')+row('Kachel: Bestandeshöhe',de(t.hoehe_median_m,1)+' m')
+    +row('Kachel: Kronenschluss',Math.round(t.kronenschluss*100)+' %')+(t.baeume_geschaetzt?row('Kachel: Bäume je ha inkl. verdeckte','≈ '+de(t.baeume_geschaetzt/Math.max(1,t.wald_ha))+' (Faktor '+de(t.faktor_laser,2)+')',1):'')+row('Kachel: Vorrat','≈ '+de((t.vorrat_m3??t.vorrat_grob_m3)/Math.max(1,t.wald_ha))+' m³/ha',1)+flightRows(t.kachel);
+  $('cN').textContent='Höhe und Lage aus dem Höhenmodell der LGB: Kronenoberfläche aus Luftbildern, Gelände aus Laserscan. Eingriffe nach dem Luftbilddatum fehlen. '+(L.hasArt?'Nadel/Laub aus der Infrarot-Helligkeit der Krone im Luftbild; Lärchen können im Frühjahr als Laub erscheinen. ':'')+(L.hasVit?'Vitalität vergleicht die Krone mit gleichartigen Nachbarn im Umkreis von 40 m; Schatten und Lücken können täuschen. Hinweis zum Nachschauen, keine Diagnose. ':'')+'BHD, Krone und Einzelbaumvolumen aus Kiefern-Faustformeln, nicht kalibriert. '+(t.baeume_geschaetzt?'Baumzahl je Kachel mit Laser-Faktoren aus 50 Stichprobenkacheln hochgerechnet (von oben verdeckte Bäume haben keinen eigenen Punkt). Vorrat auf das Landesmittel der Bundeswaldinventur 2022 angeglichen.':'');
+  const [la,lo]=utm2ll(L.E[i],L.N[i]);
+  $('cN').insertAdjacentHTML('afterend','');
+  $('cL').innerHTML=`<a href="https://www.openstreetmap.org/?mlat=${la.toFixed(6)}&mlon=${lo.toFixed(6)}#map=18/${la.toFixed(6)}/${lo.toFixed(6)}" target="_blank" rel="noopener">In OpenStreetMap öffnen</a><a href="https://www.google.com/maps/search/?api=1&query=${la.toFixed(6)},${lo.toFixed(6)}" target="_blank" rel="noopener">In Google Maps öffnen</a>`;
+  $('cL').hidden=false;
+  marker.position.set(L.X[i],0.4,L.Z[i]); marker.visible=true; $('card').hidden=false;
+}
+function selectTile(t){
+  sel&&select(null);
+  $('cT').textContent='Kachel '+t.kachel;
+  $('cD').innerHTML=row('Waldfläche',de(t.wald_ha,1)+' ha')+row('Bäume erkannt',de(t.baeume))+(t.baeume_geschaetzt?row('Bäume geschätzt inkl. verdeckte','≈ '+de(t.baeume_geschaetzt)+' (Faktor '+de(t.faktor_laser,2)+')',1):'')+row('Bestandeshöhe (Median)',de(t.hoehe_median_m,1)+' m')
+    +row('Kronenschluss',Math.round(t.kronenschluss*100)+' %')+row('Vorrat','≈ '+de(t.vorrat_m3??t.vorrat_grob_m3)+' m³',1)+flightRows(t.kachel);
+  $('cN').textContent='Fliege hin … Einzelbäume erscheinen beim Heranzoomen.'; $('cL').hidden=true; $('card').hidden=false;
+}
+canvas.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY];});
+canvas.addEventListener('pointerup',e=>{
+  if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>6) return; down=null;
+  const r=canvas.getBoundingClientRect(); ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
+  ray.setFromCamera(ptr,camera);
+  const ms=[]; for(const L of loaded.values()) for(const M of L.meshes) ms.push(M.mesh);
+  const hit=ray.intersectObjects(ms)[0];
+  if(hit){ const key=hit.object.userData.key, L=loaded.get(key), M=L.meshes.find(M=>M.mesh===hit.object); select({key,i:M.idx[hit.instanceId],M,j:hit.instanceId}); return; }
+  if(!ground) return; const g=ray.intersectObject(ground)[0]; if(!g){select(null);return;}
+  const te=Math.floor((g.point.x+ORIG.e)/1000), tn=Math.floor((-g.point.z+ORIG.n)/1000), t=tiles.get(te+'-'+tn);
+  if(t && camera.position.distanceTo(controls.target)>LOAD_DIST){ selectTile(t); goTile(te,tn); } else select(null);
+});
+$('cX').onclick=()=>{select(null);$('card').hidden=true;};
+
+// ---------- coordinates (ETRS89 / UTM 33N <-> WGS84) ----------
+const UTM={a:6378137,f:1/298.257222101,k0:0.9996,lon0:15*Math.PI/180,FE:500000};
+function utm2ll(E,N){ const {a,f,k0,lon0,FE}=UTM, e2=f*(2-f), ep2=e2/(1-e2);
+  const M=N/k0, mu=M/(a*(1-e2/4-3*e2*e2/64-5*e2**3/256)), e1=(1-Math.sqrt(1-e2))/(1+Math.sqrt(1-e2));
+  const p1=mu+(3*e1/2-27*e1**3/32)*Math.sin(2*mu)+(21*e1*e1/16-55*e1**4/32)*Math.sin(4*mu)+(151*e1**3/96)*Math.sin(6*mu)+(1097*e1**4/512)*Math.sin(8*mu);
+  const C1=ep2*Math.cos(p1)**2, T1=Math.tan(p1)**2, N1=a/Math.sqrt(1-e2*Math.sin(p1)**2), R1=a*(1-e2)/(1-e2*Math.sin(p1)**2)**1.5, D=(E-FE)/(N1*k0);
+  const lat=p1-(N1*Math.tan(p1)/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*ep2)*D**4/24+(61+90*T1+298*C1+45*T1*T1-252*ep2-3*C1*C1)*D**6/720);
+  const lon=lon0+(D-(1+2*T1+C1)*D**3/6+(5-2*C1+28*T1-3*C1*C1+8*ep2+24*T1*T1)*D**5/120)/Math.cos(p1);
+  return [lat*180/Math.PI, lon*180/Math.PI]; }
+function ll2utm(lat,lon){ const {a,f,k0,lon0,FE}=UTM, e2=f*(2-f), ep2=e2/(1-e2), p=lat*Math.PI/180, l=lon*Math.PI/180;
+  const N=a/Math.sqrt(1-e2*Math.sin(p)**2), T=Math.tan(p)**2, C=ep2*Math.cos(p)**2, A=Math.cos(p)*(l-lon0);
+  const M=a*((1-e2/4-3*e2*e2/64-5*e2**3/256)*p-(3*e2/8+3*e2*e2/32+45*e2**3/1024)*Math.sin(2*p)+(15*e2*e2/256+45*e2**3/1024)*Math.sin(4*p)-(35*e2**3/3072)*Math.sin(6*p));
+  const E=FE+k0*N*(A+(1-T+C)*A**3/6+(5-18*T+T*T+72*C-58*ep2)*A**5/120);
+  const Nn=k0*(M+N*Math.tan(p)*(A*A/2+(5-T+9*C+4*C*C)*A**4/24+(61-58*T+T*T+600*C-330*ep2)*A**6/720));
+  return [E,Nn]; }
+const fmtLL=(lat,lon)=>de(lat,5)+'° N, '+de(lon,5)+'° O';
+
+// ---------- map layer (basemap.de, Web-Mercator-Kacheln auf UTM entzerrt) ----------
+const MAP_URL=(z,x,y)=>`https://sgx.geodatenzentrum.de/wmts_basemapde/tile/1.0.0/de_basemapde_web_raster_farbe/default/GLOBAL_WEBMERCATOR/${z}/${y}/${x}.png`;
+const mapTiles=new Map(); let mapMode='karte'; const texLoader=new THREE.TextureLoader(); texLoader.setCrossOrigin('anonymous');
+const MODES=['karte','luft','cir','aus'];
+const ATTR={karte:'Karte: © basemap.de / BKG, CC BY 4.0', luft:'Luftbild: © GeoBasis-DE/LGB, dl-de/by-2-0', cir:'Infrarot-Luftbild: © GeoBasis-DE/LGB, dl-de/by-2-0 · Rot = vitale Vegetation'};
+// Luftbilder der LGB als WMS direkt in UTM 33 (passt genau auf die Kacheln, keine Entzerrung nötig)
+const WMS={luft:['dop20c','bebb_dop20c'], cir:['dop20cir','bb_dop20cir']};
+const WMS_URL=(m,e,n,size)=>`https://isk.geobasis-bb.de/mapproxy/${WMS[m][0]}/service/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=${WMS[m][1]}&STYLES=&CRS=EPSG:25833&BBOX=${e},${n},${e+size},${n+size}&WIDTH=1024&HEIGHT=1024&FORMAT=image/jpeg`;
+const lon2x=(lon,z)=>(lon+180)/360*2**z, lat2y=(lat,z)=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z;};
+const x2lon=(x,z)=>x/2**z*360-180, y2lat=(y,z)=>{const n=Math.PI-2*Math.PI*y/2**z;return 180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n)));};
+function texQuad(corners,url,opacity){   // corners: [E,N] unten-links, unten-rechts, oben-rechts, oben-links
+  const g=new THREE.BufferGeometry(), pos=[], uv=[[0,0],[1,0],[1,1],[0,1]].flat();
+  for(const [E,N] of corners) pos.push(wx(E),0.15,wz(N));
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); g.setIndex([0,1,2,0,2,3]);
+  const mat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(g,mat); mesh.renderOrder=1;
+  texLoader.load(url,tex=>{ tex.minFilter=THREE.LinearFilter; mat.map=tex; mat.opacity=opacity; mat.needsUpdate=true; },undefined,()=>{});
+  return mesh;
+}
+function mapQuad(z,x,y){
+  const c=[[x,y+1],[x+1,y+1],[x+1,y],[x,y]].map(([cx,cy])=>ll2utm(y2lat(cy,z),x2lon(cx,z)));
+  return texQuad(c,`https://sgx.geodatenzentrum.de/wmts_basemapde/tile/1.0.0/de_basemapde_web_raster_farbe/default/GLOBAL_WEBMERCATOR/${z}/${y}/${x}.png`,0.92);
+}
+function wmsQuad(m,e,n,size){ return texQuad([[e,n],[e+size,n],[e+size,n+size],[e,n+size]],WMS_URL(m,e,n,size),1); }
+function updateMap(){
+  if(!ORIG) return;
+  const dist=camera.position.distanceTo(controls.target);
+  const want=new Set();
+  const cE=controls.target.x+ORIG.e, cN=-controls.target.z+ORIG.n;
+  if(mapMode==='karte' && dist<9000){
+    const z=dist<700?17:dist<1800?16:dist<4500?15:14, R=Math.min(7000,dist*1.6);
+    const [la1,lo1]=utm2ll(cE-R,cN-R), [la2,lo2]=utm2ll(cE+R,cN+R);
+    const x1=Math.floor(lon2x(Math.min(lo1,lo2),z)), x2=Math.floor(lon2x(Math.max(lo1,lo2),z)), y1=Math.floor(lat2y(Math.max(la1,la2),z)), y2=Math.floor(lat2y(Math.min(la1,la2),z));
+    if((x2-x1+1)*(y2-y1+1)<=400) for(let x=x1;x<=x2;x++)for(let y=y1;y<=y2;y++) want.add('k/'+z+'/'+x+'/'+y);
+  } else if(WMS[mapMode] && dist<12000){
+    // Kachelgröße wächst mit der Entfernung: nah 125 m (12 cm/Pixel), weit 4 km
+    const size=dist<350?125:dist<800?250:dist<1800?500:dist<4000?1000:dist<8000?2000:4000, R=Math.min(14000,dist*1.6);
+    const e1=Math.floor((cE-R)/size), e2=Math.floor((cE+R)/size), n1=Math.floor((cN-R)/size), n2=Math.floor((cN+R)/size);
+    if((e2-e1+1)*(n2-n1+1)<=196) for(let e=e1;e<=e2;e++)for(let n=n1;n<=n2;n++) want.add(mapMode+'/'+size+'/'+e+'/'+n);
+  }
+  for(const [k,m] of mapTiles) if(!want.has(k)){ scene.remove(m); m.geometry.dispose(); if(m.material.map)m.material.map.dispose(); m.material.dispose(); mapTiles.delete(k); }
+  for(const k of want) if(!mapTiles.has(k)){ const p=k.split('/'); let m;
+    if(p[0]==='k') m=mapQuad(+p[1],+p[2],+p[3]); else { const size=+p[1]; m=wmsQuad(p[0],+p[2]*size,+p[3]*size,size); }
+    mapTiles.set(k,m); scene.add(m); }
+  $('attr').textContent=ATTR[mapMode]||''; $('attr').hidden=!mapTiles.size;
+}
+setInterval(updateMap,700);
+function setMap(m){ mapMode=m; document.querySelectorAll('#seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===m)); updateMap(); }
+
+// ---------- HUD: coordinates under the cursor, compass, scale ----------
+const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0), _hit=new THREE.Vector3();
+canvas.addEventListener('pointermove',e=>{
+  if(!ORIG) return; const r=canvas.getBoundingClientRect();
+  ptr.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); ray.setFromCamera(ptr,camera);
+  if(!ray.ray.intersectPlane(groundPlane,_hit)){ $('coords').hidden=true; return; }
+  const E=_hit.x+ORIG.e, N=-_hit.z+ORIG.n, [lat,lon]=utm2ll(E,N);
+  $('coords').textContent='UTM 33  '+Math.round(E)+' / '+Math.round(N)+'   ·   '+fmtLL(lat,lon)+'   ·   Kachel 33'+Math.floor(E/1000)+'-'+Math.floor(N/1000);
+  $('coords').hidden=false;
+});
+canvas.addEventListener('pointerleave',()=>$('coords').hidden=true);
+function updateHud(){
+  const az=Math.atan2(camera.position.x-controls.target.x, camera.position.z-controls.target.z);
+  $('needle').style.transform='rotate('+(az*180/Math.PI)+'deg)';
+  const dist=camera.position.distanceTo(controls.target), mpp=2*dist*Math.tan(camera.fov*Math.PI/360)/innerHeight;
+  const target=mpp*100, pow=10**Math.floor(Math.log10(target)), nice=[1,2,5,10].map(f=>f*pow).find(v=>v>=target*0.6)||pow*10;
+  $('scaleBar').style.width=Math.round(nice/mpp)+'px'; $('scaleTxt').textContent=nice>=1000?de(nice/1000)+' km':de(nice)+' m';
+}
+
+// ---------- keyboard ----------
+const keys=new Set();
+const MOVE={KeyW:[0,1],ArrowUp:[0,1],KeyS:[0,-1],ArrowDown:[0,-1],KeyA:[-1,0],ArrowLeft:[-1,0],KeyD:[1,0],ArrowRight:[1,0]};
+const HELD=new Set([...Object.keys(MOVE),'KeyQ','KeyE','KeyR','KeyF','Equal','Minus','NumpadAdd','NumpadSubtract','PageUp','PageDown']);
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.ctrlKey||e.metaKey||e.altKey) return;
+  if(HELD.has(e.code)){keys.add(e.code);anim=null;e.preventDefault();return;}
+  if(e.code==='Escape'){select(null);$('card').hidden=true;}
+  else if(e.code==='KeyH'&&tiles.size) goTile(HAM.e,HAM.n);
+  else if(e.code==='KeyB'&&tiles.size) showAll();
+  else if(e.code==='KeyV') setVit(!vitMode);
+  else if(e.code==='KeyK') setMap(MODES[(MODES.indexOf(mapMode)+1)%MODES.length]);
+  else if(e.code==='KeyT') setTrees(!treesOn);
+  else if(e.code==='KeyO'){ const d=Math.max(60,camera.position.distanceTo(controls.target)); fly(new THREE.Vector3(controls.target.x,d,controls.target.z+0.01),controls.target.clone()); }
+});
+addEventListener('keyup',e=>keys.delete(e.code));
+document.querySelectorAll('#pad button').forEach(b=>{const k=b.dataset.k;
+  b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(k);anim=null;});
+  for(const ev of ['pointerup','pointercancel','lostpointercapture']) b.addEventListener(ev,()=>keys.delete(k));
+  b.addEventListener('contextmenu',e=>e.preventDefault());});
+addEventListener('blur',()=>keys.clear());
+const _off=new THREE.Vector3(), _fw=new THREE.Vector3(), _rt=new THREE.Vector3(), _mv=new THREE.Vector3(), UP=new THREE.Vector3(0,1,0);
+function keyStep(dt){
+  if(!keys.size) return;
+  const fast=keys.has('ShiftLeft')||keys.has('ShiftRight')?3:1;
+  _off.subVectors(camera.position,controls.target); const dist=_off.length();
+  // pan on the ground, speed grows with height
+  let mx=0,mz=0; for(const k of keys){const m=MOVE[k]; if(m){mx+=m[0];mz+=m[1];}}
+  if(mx||mz){ camera.getWorldDirection(_fw); _fw.y=0; _fw.normalize(); _rt.crossVectors(_fw,UP);
+    _mv.set(0,0,0).addScaledVector(_fw,mz).addScaledVector(_rt,mx).normalize().multiplyScalar(dist*0.9*dt*fast);
+    camera.position.add(_mv); controls.target.add(_mv); }
+  // rotate around the target
+  const rot=(keys.has('KeyQ')?1:0)-(keys.has('KeyE')?1:0);
+  if(rot){ _off.applyAxisAngle(UP,rot*1.4*dt*fast); camera.position.copy(controls.target).add(_off); }
+  // zoom
+  const zin=keys.has('KeyR')||keys.has('Equal')||keys.has('NumpadAdd')||keys.has('PageUp');
+  const zout=keys.has('KeyF')||keys.has('Minus')||keys.has('NumpadSubtract')||keys.has('PageDown');
+  if(zin!==zout){ const f=Math.pow(zin?0.35:2.8,dt*fast);
+    const nd=Math.min(controls.maxDistance,Math.max(controls.minDistance,dist*f));
+    _off.setLength(nd); camera.position.copy(controls.target).add(_off); }
+}
+const _shiftKeys=['ShiftLeft','ShiftRight'];
+addEventListener('keydown',e=>{if(_shiftKeys.includes(e.code))keys.add(e.code);});
+
+// ---------- loop ----------
+function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
+addEventListener('resize',resize); resize();
+let _last=performance.now();
+(function loop(){
+  const now=performance.now(), dt=Math.min(0.1,(now-_last)/1000); _last=now; keyStep(dt);
+  if(anim){anim.t=Math.min(1,anim.t+0.018);const e=anim.t<.5?2*anim.t*anim.t:1-Math.pow(-2*anim.t+2,2)/2;
+    camera.position.lerpVectors(anim.fp,anim.tp,e);controls.target.lerpVectors(anim.ft,anim.tt,e);if(anim.t>=1)anim=null;}
+  controls.update(); updateHud(); renderer.render(scene,camera); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

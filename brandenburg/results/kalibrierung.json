@@ -1,0 +1,284 @@
+{
+ "kacheln": 50,
+ "zellen": 72985,
+ "flaeche_ha": 2919.4,
+ "faktor_gesamt": 1.84,
+ "laser_datum": [
+  "2018-11-28",
+  "2018-11-29",
+  "2018-12-18",
+  "2019-02-08",
+  "2019-12-16",
+  "2019-12-17",
+  "2020-01-02",
+  "2020-01-12",
+  "2020-12-18",
+  "2020-12-28",
+  "2020-12-30",
+  "2021-03-07",
+  "2021-12-03",
+  "2021-12-08",
+  "2022-01-02",
+  "2022-02-12",
+  "2022-02-14",
+  "2022-03-02",
+  "2022-03-09",
+  "2022-03-10",
+  "2022-12-29",
+  "2022-12-30",
+  "2023-01-02",
+  "2023-01-08",
+  "2023-03-17",
+  "2023-03-18",
+  "2024-02-13",
+  "2024-02-23",
+  "2024-02-24",
+  "2024-03-08",
+  "2024-03-10",
+  "2024-03-15",
+  "2024-03-19",
+  "2025-01-08",
+  "2025-01-20",
+  "2025-01-28",
+  "2025-01-30",
+  "2025-02-04",
+  "2025-02-08"
+ ],
+ "durchdringung_hinweis": "Anteil Laserpunkte unter 1 m je Zelle (wie offen der Bestand für den Laser war)",
+ "faktor_nach_durchdringung": {
+  "0-0.2": 1.5,
+  "0.2-0.4": 1.77,
+  "0.4-0.6": 1.86,
+  "0.6-1.01": 1.71
+ },
+ "tabelle": [
+  {
+   "hoehe_m": [
+    6,
+    15
+   ],
+   "kronenschluss": [
+    0.5,
+    0.7
+   ],
+   "zellen": 873,
+   "kacheln": 44,
+   "faktor": 2.02,
+   "faktor_streuung_kacheln": [
+    1.56,
+    2.82
+   ],
+   "luftbild_je_ha": 151,
+   "laser_je_ha": 306
+  },
+  {
+   "hoehe_m": [
+    6,
+    15
+   ],
+   "kronenschluss": [
+    0.7,
+    0.85
+   ],
+   "zellen": 958,
+   "kacheln": 42,
+   "faktor": 2.09,
+   "faktor_streuung_kacheln": [
+    1.89,
+    2.82
+   ],
+   "luftbild_je_ha": 191,
+   "laser_je_ha": 398
+  },
+  {
+   "hoehe_m": [
+    6,
+    15
+   ],
+   "kronenschluss": [
+    0.85,
+    1.01
+   ],
+   "zellen": 2787,
+   "kacheln": 43,
+   "faktor": 2.28,
+   "faktor_streuung_kacheln": [
+    1.96,
+    2.59
+   ],
+   "luftbild_je_ha": 235,
+   "laser_je_ha": 535
+  },
+  {
+   "hoehe_m": [
+    15,
+    20
+   ],
+   "kronenschluss": [
+    0.5,
+    0.7
+   ],
+   "zellen": 2323,
+   "kacheln": 50,
+   "faktor": 1.79,
+   "faktor_streuung_kacheln": [
+    1.6,
+    2.31
+   ],
+   "luftbild_je_ha": 155,
+   "laser_je_ha": 277
+  },
+  {
+   "hoehe_m": [
+    15,
+    20
+   ],
+   "kronenschluss": [
+    0.7,
+    0.85
+   ],
+   "zellen": 2721,
+   "kacheln": 50,
+   "faktor": 1.88,
+   "faktor_streuung_kacheln": [
+    1.67,
+    2.28
+   ],
+   "luftbild_je_ha": 181,
+   "laser_je_ha": 341
+  },
+  {
+   "hoehe_m": [
+    15,
+    20
+   ],
+   "kronenschluss": [
+    0.85,
+    1.01
+   ],
+   "zellen": 9448,
+   "kacheln": 50,
+   "faktor": 2.1,
+   "faktor_streuung_kacheln": [
+    1.83,
+    2.37
+   ],
+   "luftbild_je_ha": 220,
+   "laser_je_ha": 462
+  },
+  {
+   "hoehe_m": [
+    20,
+    25
+   ],
+   "kronenschluss": [
+    0.5,
+    0.7
+   ],
+   "zellen": 4323,
+   "kacheln": 49,
+   "faktor": 1.55,
+   "faktor_streuung_kacheln": [
+    1.42,
+    1.93
+   ],
+   "luftbild_je_ha": 160,
+   "laser_je_ha": 248
+  },
+  {
+   "hoehe_m": [
+    20,
+    25
+   ],
+   "kronenschluss": [
+    0.7,
+    0.85
+   ],
+   "zellen": 5512,
+   "kacheln": 50,
+   "faktor": 1.67,
+   "faktor_streuung_kacheln": [
+    1.53,
+    2.15
+   ],
+   "luftbild_je_ha": 176,
+   "laser_je_ha": 293
+  },
+  {
+   "hoehe_m": [
+    20,
+    25
+   ],
+   "kronenschluss": [
+    0.85,
+    1.01
+   ],
+   "zellen": 20953,
+   "kacheln": 49,
+   "faktor": 1.87,
+   "faktor_streuung_kacheln": [
+    1.67,
+    2.18
+   ],
+   "luftbild_je_ha": 207,
+   "laser_je_ha": 387
+  },
+  {
+   "hoehe_m": [
+    25,
+    60
+   ],
+   "kronenschluss": [
+    0.5,
+    0.7
+   ],
+   "zellen": 1944,
+   "kacheln": 46,
+   "faktor": 1.47,
+   "faktor_streuung_kacheln": [
+    1.29,
+    1.94
+   ],
+   "luftbild_je_ha": 147,
+   "laser_je_ha": 215
+  },
+  {
+   "hoehe_m": [
+    25,
+    60
+   ],
+   "kronenschluss": [
+    0.7,
+    0.85
+   ],
+   "zellen": 3193,
+   "kacheln": 46,
+   "faktor": 1.58,
+   "faktor_streuung_kacheln": [
+    1.33,
+    1.96
+   ],
+   "luftbild_je_ha": 153,
+   "laser_je_ha": 241
+  },
+  {
+   "hoehe_m": [
+    25,
+    60
+   ],
+   "kronenschluss": [
+    0.85,
+    1.01
+   ],
+   "zellen": 17950,
+   "kacheln": 45,
+   "faktor": 1.72,
+   "faktor_streuung_kacheln": [
+    1.51,
+    1.99
+   ],
+   "luftbild_je_ha": 176,
+   "laser_je_ha": 301
+  }
+ ]
+}

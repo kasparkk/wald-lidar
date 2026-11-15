@@ -1,0 +1,14 @@
+# treeflow settings. Every key is optional; these are the defaults.
+buffer_m: 10.0            # margin read around --bbox so edge trees keep their whole crown
+min_tree_height: 5.0      # tree tops lower than this are ignored (from-above route)
+crown_min_height: 2.0     # canopy below this does not belong to any crown
+min_point_height: 1.0     # points lower than this above ground are not given to a tree
+min_points_per_tree: 15
+window_a: 0.8             # tree-top search radius in metres = window_a + window_b * height
+window_b: 0.07            #   larger values merge neighbouring tops, smaller values split crowns
+chm_smooth: 0.8           # smoothing of the canopy model before searching tops (in cells)
+# chm_res: 0.5            # canopy model cell size; default 0.5 m airborne, 0.25 m otherwise
+use_stems: false          # true: also try stem detection on airborne data (rarely useful)
+force_ground_filter: false # true: ignore the file's ground class and run treeflow's own filter
+estimate_dbh: false       # true: fill missing DBH from height, marked as estimate
+viewer: true              # write viewer.json for Click-a-Tree (areas up to 150 m)

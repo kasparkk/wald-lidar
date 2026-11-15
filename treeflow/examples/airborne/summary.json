@@ -1,0 +1,64 @@
+{
+ "summary": {
+  "trees": 41,
+  "area_ha": 0.25,
+  "trees_per_ha": 164.0,
+  "height_median_m": 21.4,
+  "height_p95_m": 28.6,
+  "stems_measured": 0,
+  "dbh_median_cm": null,
+  "kind": "airborne",
+  "density": 23.419141876717042,
+  "method": "tree tops in canopy height model",
+  "ground_source": "file classification"
+ },
+ "info": {
+  "points": 58542,
+  "area_m2": 2499.7500040000004,
+  "density": 23.419141876717042,
+  "kind": "airborne",
+  "has_ground_class": true,
+  "multi_return": true,
+  "extent": [
+   0.0027967503110515324,
+   0.00013849489149397876,
+   49.99879675031105,
+   49.9991384948915
+  ],
+  "source": "/home/claude/tf_data/synthetic_airborne.laz",
+  "ground_source": "file classification",
+  "method": "tree tops in canopy height model",
+  "warnings": [
+   "Whole file processed: trees cut by the file edge are measured only partly.",
+   "From above, trees under the canopy are often missed and neighbouring crowns can merge.",
+   "Stem diameter is rarely measurable from airborne data.",
+   "Species is not derived from geometry; aerial photo values only flag crowns that differ from the stand."
+  ]
+ },
+ "validation": {
+  "reference_trees": 53,
+  "detected_trees": 41,
+  "matched": 41,
+  "found_pct": 77.4,
+  "correct_pct": 100.0,
+  "position_error_m": 0.22,
+  "height_bias_m": -0.12,
+  "height_rmse_m": 0.13
+ },
+ "log": [
+  "Read 58,542 points, 23 per m\u00b2 \u2192 treated as airborne scan  [0.0 s]",
+  "Ground from file classification; terrain model at 1.0 m; heights converted to height above ground  [0.1 s]",
+  "Trees found by tree tops in canopy height model: 41 candidates; crowns split by watershed on a 0.5 m canopy model  [0.1 s]",
+  "Measured 41 trees inside the area; stem diameter measured for 0  [0.2 s]",
+  "Compared with reference trees  [0.2 s]"
+ ],
+ "config": {
+  "buffer_m": 10.0,
+  "min_tree_height": 5.0,
+  "crown_min_height": 2.0,
+  "min_point_height": 1.0,
+  "min_points_per_tree": 15,
+  "estimate_dbh": false,
+  "viewer": true
+ }
+}
