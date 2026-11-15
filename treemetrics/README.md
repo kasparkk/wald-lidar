@@ -19,6 +19,7 @@ https://claude.ai/artifact/9YyyMLRpiD4kEqnBxbL2CU
 
 | File | Does |
 | --- | --- |
+| `validate_position.py` | stem position from ground vs drone scan of the same trees (median 6 cm on SEW04_GD) |
 | `run_trees.py` | folder of single-tree LAS/LAZ files -> `trees.csv` + one branch model per tree (ground scans) |
 | `stem.py` | measures the stem (circles every 50 cm, smooth taper) and puts it into the RayExtract model |
 | `treevol.py` | overlap-free volume at forks, ground height at the stem base, DBH from circle and girth at 1.3 m |

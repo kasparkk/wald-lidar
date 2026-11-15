@@ -48,6 +48,27 @@ A tilted, tapering cylinder through all stem points from 0.5–4 m (about 100 po
 
 Rejected trees get DBH from height and crown, flagged as estimated (all trees together about 2.7 cm).
 
+## Tree position
+
+Each tree's position is the centre of its lowest clean stem circle (ground scan) or of a tilted cylinder
+through the stem points 0.5–4 m (drone), converted to WGS84 when the scan carries a coordinate system.
+
+Ground vs drone scan of the same 112 trees (SEW04_GD, `treemetrics/validate_position.py`):
+
+| | Median | 90 % within | 95 % within |
+| --- | --- | --- | --- |
+| all trees | 6 cm | 28 cm | 47 cm |
+| DBH > 20 cm (94 trees) | 6 cm | 13 cm | – |
+| DBH ≤ 20 cm (18 trees) | 19 cm | 55 cm | – |
+
+68 % of trees agree within 10 cm, 88 % within 25 cm; no systematic shift (under 3 cm). Pine 5 cm, beech 10 cm.
+Worst cases are thin or leaning beeches with few drone stem points. 2 trees had too few drone points.
+
+What this does and does not show: both scans are in the same plot frame, so this measures how consistently
+the method finds the stem across scan types, not absolute map accuracy. The absolute position is only as good
+as the scan's own georeferencing. For comparison, BioDiv-3DTrees matched its ground-scan trees to the
+Exploratories field inventory at a median distance of 14 cm (all 4,952 trees) and 27 cm (this plot).
+
 ## Volume and DBH from height and crown (what an aircraft sees)
 
 | Mean deviation per tree | Beech BE | Pine BE | Pine Schorfheide | Beech Schorfheide |
