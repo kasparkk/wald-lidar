@@ -5,6 +5,7 @@ Two routes, chosen by scan type:
 - from below (ground, handheld): stems cut at breast height -> each stem seeds one tree
 Both end in the same place: every vegetation point gets a tree id.
 """
+import os
 import numpy as np
 from scipy import ndimage as ndi
 from skimage.segmentation import watershed
@@ -67,8 +68,24 @@ def stem_seeds(c, hag, ground, z_from=1.0, z_to=1.6, eps=0.1, min_pts=15):
     return seeds
 
 
+try:  # optional: same circle fit in Rust (treeflow/rust_kreis), several times faster
+    if os.environ.get('TREEFLOW_OHNE_RUST'):
+        raise ImportError
+    from treeflow_rust import fit_circle as _fit_circle_rust
+except ImportError:
+    _fit_circle_rust = None
+
+
 def fit_circle(p, iters=200, tol=0.02, rng=np.random.default_rng(0)):
-    """RANSAC circle fit, then least squares on the inliers. Returns (cx, cy, r, rmse) or None."""
+    """RANSAC circle fit, then least squares on the inliers. Returns (cx, cy, r, rmse) or None.
+    Uses the Rust version if it is installed (pip install treeflow/rust_kreis), else Python."""
+    if _fit_circle_rust is not None:
+        return _fit_circle_rust(np.ascontiguousarray(p[:, :2], dtype=np.float64), iters, tol)
+    return fit_circle_python(p, iters, tol, rng)
+
+
+def fit_circle_python(p, iters=200, tol=0.02, rng=np.random.default_rng(0)):
+    """The original Python version (reference for the Rust version)."""
     if len(p) < 6:
         return None
     best = None
